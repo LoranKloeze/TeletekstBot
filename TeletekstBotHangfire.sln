@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeletekstBotHangfire", "TeletekstBotHangfire\TeletekstBotHangfire.csproj", "{CCAB4E13-6AEE-4F1E-B0C4-AA42F159B4E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheTests", "TheTests\TheTests.csproj", "{2DCA60AB-B2AD-49CF-B177-6B4F1B93D991}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CCAB4E13-6AEE-4F1E-B0C4-AA42F159B4E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCAB4E13-6AEE-4F1E-B0C4-AA42F159B4E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCAB4E13-6AEE-4F1E-B0C4-AA42F159B4E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCAB4E13-6AEE-4F1E-B0C4-AA42F159B4E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DCA60AB-B2AD-49CF-B177-6B4F1B93D991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DCA60AB-B2AD-49CF-B177-6B4F1B93D991}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DCA60AB-B2AD-49CF-B177-6B4F1B93D991}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DCA60AB-B2AD-49CF-B177-6B4F1B93D991}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
