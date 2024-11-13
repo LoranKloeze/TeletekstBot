@@ -39,7 +39,7 @@ public class HeadlinesScraper
     private static async Task<IEnumerable<string>> ExtractClassesAsync(IElementHandle element)
     {
         var classAttr = await element.GetAttributeAsync("class");
-        return classAttr == null ? Array.Empty<string>() : classAttr.Split(" ");
+        return classAttr == null ? [] : classAttr.Split(" ");
     }
 
     private static string CleanTitle(string dirtyTitle)

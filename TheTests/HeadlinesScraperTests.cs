@@ -1,6 +1,8 @@
-using NSubstitute;
 using Microsoft.Playwright;
+using NSubstitute;
 using TeletekstBotHangfire.Services.Utils;
+
+namespace TheTests;
 
 [TestFixture]
 public class HeadlinesScraperTests
@@ -23,7 +25,7 @@ public class HeadlinesScraperTests
     public async Task RetrieveHeadlinesAsync_ShouldReturnHeadlines_WhenValidSpansArePresent()
     {
         // Arrange
-        var spanElements = new List<IElementHandle> { _mockElementHandle, _mockElementHandle, };
+        var spanElements = new List<IElementHandle> { _mockElementHandle, _mockElementHandle };
         _mockPage.QuerySelectorAllAsync("span").Returns(spanElements);
         
         _mockElementHandle.InnerTextAsync().Returns("Headline", "123");
@@ -45,7 +47,7 @@ public class HeadlinesScraperTests
     public async Task RetrieveHeadlinesAsync_RemovesTrailingDotsFromTitles()
     {
         // Arrange
-        var spanElements = new List<IElementHandle> { _mockElementHandle, _mockElementHandle, };
+        var spanElements = new List<IElementHandle> { _mockElementHandle, _mockElementHandle };
         _mockPage.QuerySelectorAllAsync("span").Returns(spanElements);
         
         _mockElementHandle.InnerTextAsync().Returns("Headline...", "123");
@@ -66,7 +68,7 @@ public class HeadlinesScraperTests
     public async Task RetrieveHeadlinesAsync_RemovesLeadingSpacesFromTitles()
     {
         // Arrange
-        var spanElements = new List<IElementHandle> { _mockElementHandle, _mockElementHandle, };
+        var spanElements = new List<IElementHandle> { _mockElementHandle, _mockElementHandle };
         _mockPage.QuerySelectorAllAsync("span").Returns(spanElements);
         
         _mockElementHandle.InnerTextAsync().Returns("  Headline", "123");

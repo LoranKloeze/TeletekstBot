@@ -43,7 +43,7 @@ public class TeletekstPageScraper
     }
 
 
-    private async Task<string> ContentTextAsync(IPage browserPage)
+    private static async Task<string> ContentTextAsync(IPage browserPage)
     {
         const int firstBlocksToSkip = 6;
         const int lastBlocksToSkip = 4;
