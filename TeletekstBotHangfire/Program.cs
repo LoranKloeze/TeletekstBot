@@ -64,6 +64,7 @@ builder.Services.AddHttpClient<IBlueSkyPostsService, BlueSkyPostsService>();
 builder.Services.AddScoped<IMastodonPostsService, MastodonPostsService>();
 var app = builder.Build();
 var isDevEnv = app.Environment.IsDevelopment();
+var isProdEnv = app.Environment.IsProduction();
 // Configure the HTTP request pipeline.
 if (isDevEnv)
 {
@@ -78,6 +79,13 @@ app.UseHangfireDashboard("/hangfire",
     {
         Authorization = [new HangfireAuthorizationFilter()]
     });
+
+// Ensure database is created and up to date
+if (isProdEnv)
+{
+    var dbContext = app.Services.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+}
 
 // Setup Hangfire jobs
 RecurringJob.AddOrUpdate<PostNewPagesJob>("postNewPages",

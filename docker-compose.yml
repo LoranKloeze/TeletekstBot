@@ -42,7 +42,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: teleteksbot_prod
+      POSTGRES_DB: teletekstbot_prod
     restart: unless-stopped
     volumes:
       - db_data:/var/lib/postgresql/data
