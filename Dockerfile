@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y wget apt-transport-https software-prope
     && apt-get update && apt-get install -y powershell \
     && rm packages-microsoft-prod.deb
 
+COPY --from=publish /app/publish .
 # Make sure the playwright browsers are installed
 RUN pwsh /app/playwright.ps1 install-deps
 RUN pwsh /app/playwright.ps1 install
-COPY --from=publish /app/publish .
