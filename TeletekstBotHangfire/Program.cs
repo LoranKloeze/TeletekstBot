@@ -1,5 +1,6 @@
 using Hangfire;
 using Hangfire.PostgreSql;
+using Mastonet;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Serilog;
@@ -15,8 +16,9 @@ using TeletekstBotHangfire.Utils.Hangfire;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
-    .WriteTo.File("log.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
+
+var runToFillDb = args.Length > 0 && args[0] == "filldb";
 
 // General setup
 var builder = WebApplication.CreateBuilder(args);
@@ -38,18 +40,28 @@ builder.Services.AddHangfire(configuration => configuration
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(sqlConnectionString)));
-builder.Services.AddHangfireServer(options => { options.Queues = ["default"]; });
+if (!runToFillDb)
+{
+    builder.Services.AddHangfireServer(options => { options.Queues = ["default"]; });
+}
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSerilog();
+builder.Services.AddTransient<IMastodonClient, MastodonClient>(_ =>
+{
+    var accessToken = builder.Configuration["Mastodon:AccessToken"] ?? 
+                      throw new InvalidOperationException("Mastodon access token not found.");
+    return new MastodonClient("mastodon.nl", accessToken);
+});
 builder.Services.AddScoped<ICurrentPagesService, CurrentPagesService>();
 builder.Services.AddScoped<HeadlinesScraper>();
 builder.Services.AddScoped<ITeletekstPageService, TeletekstPageService>();
 builder.Services.AddScoped<TeletekstPageScraper>();
 builder.Services.AddScoped<PostNewPagesJob>();
 builder.Services.AddHttpClient<IBlueSkyPostsService, BlueSkyPostsService>();
+builder.Services.AddScoped<IMastodonPostsService, MastodonPostsService>();
 var app = builder.Build();
 var isDevEnv = app.Environment.IsDevelopment();
 // Configure the HTTP request pipeline.
@@ -69,7 +81,23 @@ app.UseHangfireDashboard("/hangfire",
 
 // Setup Hangfire jobs
 RecurringJob.AddOrUpdate<PostNewPagesJob>("postNewPages",
-    "default", x => x.StartAsync(),
+    "default", x => x.StartAsync(new PostNewPagesJobOptions
+    {
+        PostToSocialMedia = true
+    }),
     Cron.Never());
-
-app.Run();
+if (runToFillDb)
+{
+    Console.WriteLine("Running PostNewPagesJob to fill the database without posting to social media");
+    var scope = app.Services.CreateScope();
+    var job = scope.ServiceProvider.GetRequiredService<PostNewPagesJob>();
+    job.StartAsync(new PostNewPagesJobOptions
+    {
+        PostToSocialMedia = false
+    }).Wait();
+    Console.WriteLine("Done, bye!");
+}
+else
+{
+    app.Run();
+}

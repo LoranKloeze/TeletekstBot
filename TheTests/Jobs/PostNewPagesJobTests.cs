@@ -3,7 +3,6 @@ using NSubstitute;
 using TeletekstBotHangfire.Data;
 using TeletekstBotHangfire.Jobs;
 using TeletekstBotHangfire.Models.Ef;
-using TeletekstBotHangfire.Services;
 using TeletekstBotHangfire.Services.Interfaces;
 
 namespace TheTests.Jobs;
@@ -15,6 +14,7 @@ public class PostNewPagesJobTests
     private ITeletekstPageService _teletekstPageService;
     private ICurrentPagesService _currentPagesService;
     private IBlueSkyPostsService _blueSkyPostsService;
+    private IMastodonPostsService _mastodonPostsService;
     private PostNewPagesJob _job;
 
     [SetUp]
@@ -24,6 +24,7 @@ public class PostNewPagesJobTests
         _teletekstPageService = Substitute.For<ITeletekstPageService>();
         _currentPagesService = Substitute.For<ICurrentPagesService>();
         _blueSkyPostsService = Substitute.For<IBlueSkyPostsService>();
+        _mastodonPostsService = Substitute.For<IMastodonPostsService>();
 
         // Set up the in-memory database context
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -31,7 +32,8 @@ public class PostNewPagesJobTests
             .Options;
         _context = new ApplicationDbContext(options);
 
-        _job = new PostNewPagesJob(_context, _teletekstPageService, _currentPagesService, _blueSkyPostsService);
+        _job = new PostNewPagesJob(_context, _teletekstPageService, _currentPagesService, 
+            _blueSkyPostsService, _mastodonPostsService);
     }
 
     [TearDown]
@@ -52,10 +54,14 @@ public class PostNewPagesJobTests
         _teletekstPageService.GetPageAsync(101).Returns(newPage);
 
         // Act
-        await _job.StartAsync();
+        await _job.StartAsync(new PostNewPagesJobOptions
+        {
+            PostToSocialMedia = true
+        });
 
         // Assert
         await _blueSkyPostsService.Received(1).SendTeletekstPageAsync(newPage);
+        await _mastodonPostsService.Received(1).SendTeletekstPageAsync(newPage);
 
         var pageInDb = await _context.TeletekstPages.FindAsync(101);
         Assert.That(pageInDb, Is.Not.Null);
@@ -77,10 +83,14 @@ public class PostNewPagesJobTests
         _teletekstPageService.GetPageAsync(101).Returns(updatedPage);
 
         // Act
-        await _job.StartAsync();
+        await _job.StartAsync(new PostNewPagesJobOptions
+        {
+            PostToSocialMedia = true
+        });
 
         // Assert
         await _blueSkyPostsService.Received(1).SendTeletekstPageAsync(updatedPage);
+        await _mastodonPostsService.Received(1).SendTeletekstPageAsync(updatedPage);
 
         var pageInDb = await _context.TeletekstPages.FindAsync(101);
         Assert.Multiple(() =>
@@ -89,6 +99,32 @@ public class PostNewPagesJobTests
             Assert.That(pageInDb!.Title, Is.EqualTo("Updated Page"));
             Assert.That(pageInDb.Content, Is.EqualTo("Updated Content"));
         });
+    }
+    
+    
+    [Test]
+    public async Task StartAsync_Should_SaveToDb_But_NotPost_If_PostToSocialMedia_Is_False()
+    {
+        // Arrange
+        var pageNumbers = new List<int> { 101 };
+        var newPage = new TeletekstPage { PageNr = 101, Title = "New Page", Content = "Content", Screenshot = []};
+
+        _currentPagesService.GetPageNumbersAsync().Returns(pageNumbers);
+        _teletekstPageService.GetPageAsync(101).Returns(newPage);
+
+        // Act
+        await _job.StartAsync(new PostNewPagesJobOptions
+        {
+            PostToSocialMedia = false
+        });
+
+        // Assert
+        await _blueSkyPostsService.DidNotReceive().SendTeletekstPageAsync(Arg.Any<TeletekstPage>());
+        await _mastodonPostsService.DidNotReceive().SendTeletekstPageAsync(Arg.Any<TeletekstPage>());
+
+        var pageInDb = await _context.TeletekstPages.FindAsync(101);
+        Assert.That(pageInDb, Is.Not.Null);
+        Assert.That(pageInDb.Title, Is.EqualTo("New Page"));
     }
 
     [Test]
@@ -104,9 +140,13 @@ public class PostNewPagesJobTests
         _teletekstPageService.GetPageAsync(101).Returns(samePage);
 
         // Act
-        await _job.StartAsync();
+        await _job.StartAsync(new PostNewPagesJobOptions
+        {
+            PostToSocialMedia = true
+        });
 
         // Assert
         await _blueSkyPostsService.DidNotReceive().SendTeletekstPageAsync(Arg.Any<TeletekstPage>());
+        await _mastodonPostsService.DidNotReceive().SendTeletekstPageAsync(Arg.Any<TeletekstPage>());
     }
 }

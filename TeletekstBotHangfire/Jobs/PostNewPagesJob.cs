@@ -1,7 +1,6 @@
 ﻿using Serilog;
 using TeletekstBotHangfire.Data;
 using TeletekstBotHangfire.Models.Ef;
-using TeletekstBotHangfire.Services;
 using TeletekstBotHangfire.Services.Interfaces;
 
 namespace TeletekstBotHangfire.Jobs;
@@ -9,10 +8,11 @@ namespace TeletekstBotHangfire.Jobs;
 public class PostNewPagesJob(ApplicationDbContext context, 
     ITeletekstPageService teletekstPageService, 
     ICurrentPagesService currentPagesService,
-    IBlueSkyPostsService blueSkyPostsService
+    IBlueSkyPostsService blueSkyPostsService,
+    IMastodonPostsService mastodonPostsService
     )
 {
-    public async Task StartAsync()
+    public async Task StartAsync(PostNewPagesJobOptions options)
     {
         var headlinePageNumbers = await currentPagesService.GetPageNumbersAsync();
         foreach (var pageNumber in headlinePageNumbers)
@@ -26,9 +26,19 @@ public class PostNewPagesJob(ApplicationDbContext context,
 
             if (pageInDb == null || PageChanged(pageInDb, pageAtNos))
             {
-                Log.Information("[PostNewPagesJob] Posting new page {PageNr} - {Title}", pageAtNos.PageNr, pageAtNos.Title);
-                await blueSkyPostsService.SendTeletekstPageAsync(pageAtNos);
+                if (options.PostToSocialMedia)
+                {
+                    Log.Information("[PostNewPagesJob] Posting new page {PageNr} - {Title}", pageAtNos.PageNr, pageAtNos.Title);
+                    await blueSkyPostsService.SendTeletekstPageAsync(pageAtNos);
+                    await mastodonPostsService.SendTeletekstPageAsync(pageAtNos);
+                }
+                else
+                {
+                    Log.Information("[PostNewPagesJob] Would have posted new page {PageNr} - {Title}", pageAtNos.PageNr, pageAtNos.Title);
+                }
+                
                 await UpsertPageAsync(pageAtNos);
+
             } 
             else
             {
@@ -74,4 +84,9 @@ public class PostNewPagesJob(ApplicationDbContext context,
         
         return pageAtNos.Content != pageInDb.Content;
     }
+}
+
+public class PostNewPagesJobOptions
+{
+    public bool PostToSocialMedia { get; init; }
 }
