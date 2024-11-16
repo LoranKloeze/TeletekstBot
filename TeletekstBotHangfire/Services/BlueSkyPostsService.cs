@@ -3,14 +3,10 @@ using System.Text;
 using System.Text.Json;
 using TeletekstBotHangfire.Models.BlueSky;
 using TeletekstBotHangfire.Models.Ef;
+using TeletekstBotHangfire.Services.Interfaces;
 using TeletekstBotHangfire.Utils;
 
 namespace TeletekstBotHangfire.Services;
-
-public interface IBlueSkyPostsService
-{
-    Task SendTeletekstPageAsync(TeletekstPage page);
-}
 
 public class BlueSkyPostsService : IBlueSkyPostsService
 {
