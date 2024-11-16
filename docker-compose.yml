@@ -27,6 +27,10 @@ services:
     environment:
       - TZ=Europe/Amsterdam
       - ASPNETCORE_ENVIRONMENT=Production
+      - BlueSky__Identifier
+      - BlueSky__Password
+      - Mastodon__AccessToken
+      - Hangfire__LoginKey
     profiles:
       - manual
     extra_hosts:
