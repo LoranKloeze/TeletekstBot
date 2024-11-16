@@ -71,7 +71,7 @@ public class TeletekstPageScraper
             {
                 X = 445,
                 Y = 118,
-                Width = 512,
+                Width = 515,
                 Height = 551
             },
             Type = ScreenshotType.Png
