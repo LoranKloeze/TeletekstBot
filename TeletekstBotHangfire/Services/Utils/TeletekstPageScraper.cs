@@ -1,19 +1,26 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.Playwright;
-using TeletekstBotHangfire.Models;
+using TeletekstBotHangfire.Models.Ef;
 
 namespace TeletekstBotHangfire.Services.Utils;
 
 public class TeletekstPageScraper
 {
     private const string PageUrl = "https://nos.nl/teletekst/";
+    
 
     // ReSharper disable once MemberCanBeMadeStatic.Global
-    public async Task<TeletekstPage> RetrievePageAsync(IPage browserPage, int pageNr)
+    public async Task<TeletekstPage?> RetrievePageAsync(IPage browserPage, int pageNr)
     {
         await browserPage.GotoAsync(BuildPageUrl(pageNr));
-        
-        var teletekstPage =  new TeletekstPage(await TitleTextAsync(browserPage),await ContentTextAsync(browserPage), pageNr);
+
+        var teletekstPage = new TeletekstPage
+        {
+            PageNr = pageNr,
+            Title = await TitleTextAsync(browserPage),
+            Content = await ContentTextAsync(browserPage),
+            Screenshot = await ScreenshotAsync(browserPage)
+        };
 
         return teletekstPage;
 
@@ -56,6 +63,22 @@ public class TeletekstPageScraper
         return CleanUpText(dirtyContent);
     }
 
+    private static async Task<byte[]> ScreenshotAsync(IPage browserPage)
+    {
+        return await browserPage.ScreenshotAsync(new PageScreenshotOptions
+        {
+            Path = "screenshot.png",
+            Clip = new Clip
+            {
+                X = 445,
+                Y = 118,
+                Width = 507,
+                Height = 551
+            },
+            Type = ScreenshotType.Png
+        });
+    }
+
     private static string CleanUpText(string dirtyContent)
     {
         var cleanContent = dirtyContent.Trim();
@@ -65,7 +88,7 @@ public class TeletekstPageScraper
 #pragma warning restore SYSLIB1045
         
 #pragma warning disable SYSLIB1045
-        cleanContent = Regex.Replace(cleanContent, @"[^a-zA-Z0-9\s\-',._]", "");
+        cleanContent = Regex.Replace(cleanContent, @"[^\p{L}\p{N}\s\-',._]", "");
 #pragma warning restore SYSLIB1045
 
         return cleanContent;

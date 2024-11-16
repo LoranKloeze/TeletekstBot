@@ -13,8 +13,9 @@ using TeletekstBotHangfire.Utils.Hangfire;
 
 // Setup Serilog
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
+    .MinimumLevel.Information()
     .WriteTo.Console()
+    .WriteTo.File("log.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 // General setup
@@ -48,11 +49,11 @@ builder.Services.AddScoped<HeadlinesScraper>();
 builder.Services.AddScoped<ITeletekstPageService, TeletekstPageService>();
 builder.Services.AddScoped<TeletekstPageScraper>();
 builder.Services.AddScoped<PostNewPagesJob>();
-
+builder.Services.AddHttpClient<IBlueSkyPostsService, BlueSkyPostsService>();
 var app = builder.Build();
-
+var isDevEnv = app.Environment.IsDevelopment();
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (isDevEnv)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -66,12 +67,9 @@ app.UseHangfireDashboard("/hangfire",
         Authorization = [new HangfireAuthorizationFilter()]
     });
 
-app.MapGet("/postnewpages", async (PostNewPagesJob postNewPagesJob) =>
-    {
-        await postNewPagesJob.RunAsync();
+// Setup Hangfire jobs
+RecurringJob.AddOrUpdate<PostNewPagesJob>("postNewPages",
+    "default", x => x.StartAsync(),
+    Cron.Never());
 
-        return Results.Ok("blabla");
-    })
-    .WithName("GetHeadlines")
-    .WithOpenApi();
 app.Run();

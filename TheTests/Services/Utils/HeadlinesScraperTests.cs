@@ -2,7 +2,7 @@ using Microsoft.Playwright;
 using NSubstitute;
 using TeletekstBotHangfire.Services.Utils;
 
-namespace TheTests;
+namespace TheTests.Services.Utils;
 
 [TestFixture]
 public class HeadlinesScraperTests

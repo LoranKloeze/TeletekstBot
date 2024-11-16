@@ -2,7 +2,7 @@
 using NSubstitute;
 using TeletekstBotHangfire.Services.Utils;
 
-namespace TheTests;
+namespace TheTests.Services.Utils;
 
 [TestFixture]
 public class TeletekstPageScraperTests
@@ -38,9 +38,13 @@ public class TeletekstPageScraperTests
         var result = await _scraper.RetrievePageAsync(_browserPageMock, pageNr);
 
         // Assert
-        Assert.That(result.Title, Is.EqualTo(expectedTitle));
-        Assert.That(result.Content, Is.EqualTo(expectedContent));
-        Assert.That(result.PageNr, Is.EqualTo(pageNr));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.Title, Is.EqualTo(expectedTitle));
+            Assert.That(result.Content, Is.EqualTo(expectedContent));
+            Assert.That(result.PageNr, Is.EqualTo(pageNr));
+        });
     }
         
     [Test]
@@ -63,10 +67,14 @@ public class TeletekstPageScraperTests
         // Act
         var result = await _scraper.RetrievePageAsync(_browserPageMock, pageNr);
 
-        // Assert
-        Assert.That(result.Title, Is.EqualTo(expectedTitle));
-        Assert.That(result.Content, Is.EqualTo(expectedContent));
-        Assert.That(result.PageNr, Is.EqualTo(pageNr));
+        Assert.Multiple(() =>
+        {
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.Title, Is.EqualTo(expectedTitle));
+            Assert.That(result.Content, Is.EqualTo(expectedContent));
+            Assert.That(result.PageNr, Is.EqualTo(pageNr));
+        });
     }
 
     
