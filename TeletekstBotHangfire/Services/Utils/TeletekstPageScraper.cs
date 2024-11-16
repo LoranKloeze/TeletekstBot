@@ -67,7 +67,6 @@ public class TeletekstPageScraper
     {
         return await browserPage.ScreenshotAsync(new PageScreenshotOptions
         {
-            Path = "screenshot.png",
             Clip = new Clip
             {
                 X = 445,
