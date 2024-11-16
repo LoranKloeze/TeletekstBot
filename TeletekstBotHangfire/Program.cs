@@ -85,7 +85,7 @@ RecurringJob.AddOrUpdate<PostNewPagesJob>("postNewPages",
     {
         PostToSocialMedia = true
     }),
-    Cron.Never());
+    "*/5 * * * *");
 if (runToFillDb)
 {
     Console.WriteLine("Running PostNewPagesJob to fill the database without posting to social media");
