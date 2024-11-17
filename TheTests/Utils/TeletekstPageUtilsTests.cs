@@ -1,4 +1,5 @@
-﻿using TeletekstBotHangfire.Models.Ef;
+﻿using TeletekstBotHangfire.Models;
+using TeletekstBotHangfire.Models.Ef;
 using TeletekstBotHangfire.Utils;
 
 namespace TheTests.Utils;
@@ -57,5 +58,80 @@ public class TeletekstPageUtilsTests
 
         // Assert
         Assert.That(result, Is.EqualTo(expected));
+    }
+    
+        [Test]
+    public void Changes_ShouldReturn_NewPage_WhenPageAIsNull()
+    {
+        // Arrange
+        TeletekstPage? pageA = null;
+        var pageB = new TeletekstPage
+        {
+            Title = "Title",
+            Content = "Content",
+            Screenshot = []
+        };
+
+        // Act
+        var result = TeletekstPageUtils.Changes(pageA, pageB);
+
+        // Assert
+        Assert.That(result, Is.EqualTo(PageChanges.NewPage));
+    }
+
+    [Test]
+    public void Changes_ShouldReturn_NoChange_WhenPagesAreIdentical()
+    {
+        // Arrange
+        var pageA = new TeletekstPage { Title = "Title", Content = "Content", Screenshot = []};
+        var pageB = new TeletekstPage { Title = "Title", Content = "Content", Screenshot = []};
+
+        // Act
+        var result = TeletekstPageUtils.Changes(pageA, pageB);
+
+        // Assert
+        Assert.That(result, Is.EqualTo(PageChanges.NoChange));
+    }
+
+    [Test]
+    public void Changes_ShouldReturn_ContentAndTitleChanged_WhenBothTitleAndContentDiffer()
+    {
+        // Arrange
+        var pageA = new TeletekstPage { Title = "Title A", Content = "Content A", Screenshot = []};
+        var pageB = new TeletekstPage { Title = "Title B", Content = "Content B", Screenshot = []};
+
+        // Act
+        var result = TeletekstPageUtils.Changes(pageA, pageB);
+
+        // Assert
+        Assert.That(result, Is.EqualTo(PageChanges.ContentAndTitleChanged));
+    }
+
+    [Test]
+    public void Changes_ShouldReturn_TitleChanged_WhenOnlyTitleDiffers()
+    {
+        // Arrange
+        var pageA = new TeletekstPage { Title = "Title A", Content = "Content", Screenshot = []};
+        var pageB = new TeletekstPage { Title = "Title B", Content = "Content", Screenshot = []};
+
+        // Act
+        var result = TeletekstPageUtils.Changes(pageA, pageB);
+
+        // Assert
+        Assert.That(result, Is.EqualTo(PageChanges.TitleChanged));
+    }
+
+    [Test]
+    public void Changes_ShouldReturn_ContentChanged_WhenOnlyContentDiffers()
+    {
+        // Arrange
+        var pageA = new TeletekstPage { Title = "Title", Content = "Content A", Screenshot = []};
+        var pageB = new TeletekstPage { Title = "Title", Content = "Content B", Screenshot = []};
+
+        // Act
+        var result = TeletekstPageUtils.Changes(pageA, pageB);
+
+        // Assert
+        Assert.That(result, Is.EqualTo(PageChanges.ContentChanged));
     }
 }

@@ -107,7 +107,9 @@ public class BlueSkyPostsService : IBlueSkyPostsService
 
     private BlueSkyPostRequest BuildPost(TeletekstPage page, BlueSkyBlobBody blobBody)
     {
-        var text = TeletekstPageUtils.TitleForSocialMedia(page);
+        var title = TeletekstPageUtils.TitleForSocialMedia(page);
+        var change = TeletekstPageUtils.ChangesText(page);
+        var text = change == null ? title : $"{title} {change}";
         
         return new BlueSkyPostRequest
         {
@@ -123,7 +125,7 @@ public class BlueSkyPostsService : IBlueSkyPostsService
                         Index = new Record.Facet.FacetIndex
                         {
                             ByteStart = 6,
-                            ByteEnd = text.Length
+                            ByteEnd = title.Length
                         },
                         Features = [
                         new Record.Facet.Feature

@@ -1,7 +1,9 @@
 ﻿using Serilog;
 using TeletekstBotHangfire.Data;
+using TeletekstBotHangfire.Models;
 using TeletekstBotHangfire.Models.Ef;
 using TeletekstBotHangfire.Services.Interfaces;
+using TeletekstBotHangfire.Utils;
 
 namespace TeletekstBotHangfire.Jobs;
 
@@ -12,6 +14,8 @@ public class PostNewPagesJob(ApplicationDbContext context,
     IMastodonPostsService mastodonPostsService
     )
 {
+    
+    [Hangfire.AutomaticRetry(Attempts = 0)]
     public async Task StartAsync(PostNewPagesJobOptions options)
     {
         var headlinePageNumbers = await currentPagesService.GetPageNumbersAsync();
@@ -24,17 +28,21 @@ public class PostNewPagesJob(ApplicationDbContext context,
                 continue;
             }
 
-            if (pageInDb == null || PageChanged(pageInDb, pageAtNos))
+            var changes = TeletekstPageUtils.Changes(pageInDb, pageAtNos);
+            if (changes != PageChanges.NoChange)
             {
+                pageAtNos.LastPageChanges = changes;
                 if (options.PostToSocialMedia)
                 {
-                    Log.Information("[PostNewPagesJob] Posting new page {PageNr} - {Title}", pageAtNos.PageNr, pageAtNos.Title);
+                    Log.Information("[PostNewPagesJob] Posting updated page {PageNr} - {Title} - {Changes}", 
+                        pageAtNos.PageNr, pageAtNos.Title, pageAtNos.LastPageChanges);
                     await blueSkyPostsService.SendTeletekstPageAsync(pageAtNos);
                     await mastodonPostsService.SendTeletekstPageAsync(pageAtNos);
                 }
                 else
                 {
-                    Log.Information("[PostNewPagesJob] Would have posted new page {PageNr} - {Title}", pageAtNos.PageNr, pageAtNos.Title);
+                    Log.Information("[PostNewPagesJob] Would have posted new page {PageNr} - {Title} - {Changes}", 
+                        pageAtNos.PageNr, pageAtNos.Title, pageAtNos.LastPageChanges);
                 }
                 
                 await UpsertPageAsync(pageAtNos);
@@ -74,16 +82,7 @@ public class PostNewPagesJob(ApplicationDbContext context,
         }
         await context.SaveChangesAsync();
     }
-    
-    private static bool PageChanged(TeletekstPage pageInDb, TeletekstPage pageAtNos)
-    {
-        if (pageAtNos.Title != pageInDb.Title)
-        {
-            return true;
-        }
-        
-        return pageAtNos.Content != pageInDb.Content;
-    }
+
 }
 
 public class PostNewPagesJobOptions

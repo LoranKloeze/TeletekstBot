@@ -20,7 +20,9 @@ public class MastodonPostsService(IMastodonClient mastodonClient) : IMastodonPos
             Y = 1.0
         });
         
-        var body = TeletekstPageUtils.TitleForSocialMedia(page);
+        var title = TeletekstPageUtils.TitleForSocialMedia(page);
+        var change = TeletekstPageUtils.ChangesText(page);
+        var body = change == null ? title : $"{title} {change}";
         await mastodonClient.PublishStatus(body, Visibility.Unlisted, 
             null, new List<string> { attachment.Id });
     }
