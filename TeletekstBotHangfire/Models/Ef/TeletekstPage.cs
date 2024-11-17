@@ -18,4 +18,6 @@ public class TeletekstPage
     
     public DateTime? LastUpdatedInDbAt { get; set; }
     
+    public PageChanges? LastPageChanges { get; set; }
+    
 }
