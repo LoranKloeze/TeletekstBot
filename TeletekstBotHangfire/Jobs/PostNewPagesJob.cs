@@ -31,6 +31,7 @@ public class PostNewPagesJob(ApplicationDbContext context,
             var changes = TeletekstPageUtils.Changes(pageInDb, pageAtNos);
             if (changes != PageChanges.NoChange)
             {
+                await UpsertPageAsync(pageAtNos);
                 pageAtNos.LastPageChanges = changes;
                 if (options.PostToSocialMedia)
                 {
@@ -45,7 +46,7 @@ public class PostNewPagesJob(ApplicationDbContext context,
                         pageAtNos.PageNr, pageAtNos.Title, pageAtNos.LastPageChanges);
                 }
                 
-                await UpsertPageAsync(pageAtNos);
+                
 
             } 
             else
