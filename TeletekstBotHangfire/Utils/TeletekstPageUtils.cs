@@ -8,6 +8,7 @@ public static class TeletekstPageUtils
 {
     // Don't post when the page last changed more than n minutes ago
     private const int LastChangeThresholdInMinutes = 120;
+    private const string AllowedExistingTitleMatch = "kort nieuws";
     
     public static string TitleForSocialMedia(TeletekstPage page)
     {
@@ -75,7 +76,6 @@ public static class TeletekstPageUtils
         {
             return false;
         }
-        var changes = Changes(thisPageInDb, pageAtNos);
         
         var pageCorruptOrNotFound = string.IsNullOrWhiteSpace(pageAtNos.Title);
         if (pageCorruptOrNotFound)
@@ -84,7 +84,11 @@ public static class TeletekstPageUtils
         }
 
         var titleAlreadyInDbForOtherPage = allPagesInDb
-            .Any(pageInDb => pageInDb.PageNr != pageAtNos.PageNr && pageInDb.Title == pageAtNos.Title);
+            .Any(
+                pageInDb => pageInDb.PageNr != pageAtNos.PageNr && 
+                            pageInDb.Title == pageAtNos.Title && 
+                            !pageInDb.Title.Contains(AllowedExistingTitleMatch, 
+                                StringComparison.InvariantCultureIgnoreCase));
         if (titleAlreadyInDbForOtherPage)
         {
             return false;
@@ -99,7 +103,7 @@ public static class TeletekstPageUtils
         }
 
         // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (changes != PageChanges.NoChange)
+        if (Changes(thisPageInDb, pageAtNos) != PageChanges.NoChange)
         {
             return true;
         }

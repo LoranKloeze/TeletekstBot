@@ -277,6 +277,45 @@ public class TeletekstPageUtilsTests
         }
         
         [Test]
+        public void ShouldPostPage_TitleAlreadyInDbForOtherPageButAllowedDuplicateTitle_ReturnsTrue()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Other title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+            
+            var pageInDbWithSameTitle = new TeletekstPage
+            {
+                PageNr = 108,
+                Title = "Kort nieuws",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+            List<TeletekstPage> pagesInDb = [pageInDb, pageInDbWithSameTitle];
+
+            var pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Kort nieuws",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb);
+
+            // Assert
+            Assert.That(result, Is.True);
+        }
+        
+        [Test]
         public void ShouldPostPage_PageLastChangedTooLongAgo_ReturnsFalse()
         {
             // Arrange
