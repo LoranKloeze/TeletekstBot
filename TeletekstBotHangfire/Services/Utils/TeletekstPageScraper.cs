@@ -87,7 +87,7 @@ public class TeletekstPageScraper
 #pragma warning restore SYSLIB1045
         
 #pragma warning disable SYSLIB1045
-        cleanContent = Regex.Replace(cleanContent, @"[^\p{L}\p{N}\s\-',._:]", "");
+        cleanContent = Regex.Replace(cleanContent, @"[^\p{L}\p{N}\s\-',._:""]", "");
 #pragma warning restore SYSLIB1045
 
         return cleanContent;
