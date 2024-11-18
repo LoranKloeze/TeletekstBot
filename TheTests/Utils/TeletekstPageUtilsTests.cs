@@ -134,4 +134,102 @@ public class TeletekstPageUtilsTests
         // Assert
         Assert.That(result, Is.EqualTo(PageChanges.ContentChanged));
     }
+    
+     [Test]
+        public void ShouldPostPage_PageAtNosIsNull_ReturnsFalse()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Title in DB",
+                Content = "Content in DB",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, null);
+
+            // Assert
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void ShouldPostPage_PageAtNosHasEmptyTitle_ReturnsFalse()
+        {
+            // Arrange
+            var pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "   ",
+                Content = "Some content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(null, pageAtNos);
+
+            // Assert
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void ShouldPostPage_ChangesDetected_ReturnsTrue()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Old Title",
+                Content = "Old Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            var pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "New Title",
+                Content = "New Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos);
+
+            // Assert
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void ShouldPostPage_NoChangesDetected_ReturnsFalse()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            TeletekstPage? pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos);
+
+            // Assert
+            Assert.That(result, Is.False);
+        }
 }

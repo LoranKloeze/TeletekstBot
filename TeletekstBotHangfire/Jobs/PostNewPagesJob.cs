@@ -23,16 +23,12 @@ public class PostNewPagesJob(ApplicationDbContext context,
         {
             var pageInDb = await context.TeletekstPages.FindAsync(pageNumber);
             var pageAtNos = await teletekstPageService.GetPageAsync(pageNumber);
-            if (pageAtNos == null)
+            
+            if (TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos))
             {
-                continue;
-            }
-
-            var changes = TeletekstPageUtils.Changes(pageInDb, pageAtNos);
-            if (changes != PageChanges.NoChange)
-            {
-                await UpsertPageAsync(pageAtNos);
+                var changes = TeletekstPageUtils.Changes(pageInDb, pageAtNos);
                 pageAtNos.LastPageChanges = changes;
+                await UpsertPageAsync(pageAtNos);
                 if (options.PostToSocialMedia)
                 {
                     Log.Information("[PostNewPagesJob] Posting updated page {PageNr} - {Title} - {Changes}", 
@@ -45,15 +41,18 @@ public class PostNewPagesJob(ApplicationDbContext context,
                     Log.Information("[PostNewPagesJob] Would have posted new page {PageNr} - {Title} - {Changes}", 
                         pageAtNos.PageNr, pageAtNos.Title, pageAtNos.LastPageChanges);
                 }
-                
-                
-
             } 
             else
             {
-                Log.Information("[PostNewPagesJob] No change {PageNr} - {Title}", pageAtNos.PageNr, pageAtNos.Title);
+                if (pageAtNos != null)
+                {
+                    Log.Information("[PostNewPagesJob] No change {PageNr} - {Title} - not posting", pageAtNos.PageNr, pageAtNos.Title);
+                }
+                else
+                {
+                    Log.Information("[PostNewPagesJob] Page {PageNr} not found - not posting", pageNumber);
+                }
             }
-
         }
     }
 

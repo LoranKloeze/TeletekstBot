@@ -1,4 +1,5 @@
-﻿using TeletekstBotHangfire.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+using TeletekstBotHangfire.Models;
 using TeletekstBotHangfire.Models.Ef;
 
 namespace TeletekstBotHangfire.Utils;
@@ -20,25 +21,25 @@ public static class TeletekstPageUtils
         return $"Pagina: {page.PageNr} - Titel: {page.Title} - Inhoud: {page.Content}";
     }
     
-    public static PageChanges Changes(TeletekstPage? pageA, TeletekstPage pageB)
+    public static PageChanges Changes(TeletekstPage? pageInDb, TeletekstPage pageAtNos)
     {
-        if (pageA == null)
+        if (pageInDb == null)
         {
             return PageChanges.NewPage;
         }
         
-        if (pageB.Title != pageA.Title && pageB.Content != pageA.Content)
+        if (pageAtNos.Title != pageInDb.Title && pageAtNos.Content != pageInDb.Content)
         {
             return PageChanges.ContentAndTitleChanged;
         }
         
-        if (pageB.Title != pageA.Title)
+        if (pageAtNos.Title != pageInDb.Title)
         {
             return PageChanges.TitleChanged;
         }
         
         // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (pageB.Content != pageA.Content)
+        if (pageAtNos.Content != pageInDb.Content)
         {
             return PageChanges.ContentChanged;
         }
@@ -62,5 +63,21 @@ public static class TeletekstPageUtils
             default:
                 throw new ArgumentOutOfRangeException(nameof(page));
         }
+    }
+
+    public static bool ShouldPostPage(TeletekstPage? pageInDb, [NotNullWhen(true)] TeletekstPage? pageAtNos)
+    {
+        if (pageAtNos == null || string.IsNullOrWhiteSpace(pageAtNos.Title))
+        {
+            return false;
+        }
+
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (Changes(pageInDb, pageAtNos) != PageChanges.NoChange)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
