@@ -147,9 +147,10 @@ public class TeletekstPageUtilsTests
                 Screenshot = [],
                 LastUpdatedInDbAt = DateTime.UtcNow
             };
+            List<TeletekstPage> pagesInDb = [pageInDb];
 
             // Act
-            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, null);
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, null, pagesInDb);
 
             // Assert
             Assert.That(result, Is.False);
@@ -167,9 +168,10 @@ public class TeletekstPageUtilsTests
                 Screenshot = [],
                 LastUpdatedInDbAt = DateTime.UtcNow
             };
+            List<TeletekstPage> pagesInDb = [];
 
             // Act
-            var result = TeletekstPageUtils.ShouldPostPage(null, pageAtNos);
+            var result = TeletekstPageUtils.ShouldPostPage(null, pageAtNos, pagesInDb);
 
             // Assert
             Assert.That(result, Is.False);
@@ -187,6 +189,7 @@ public class TeletekstPageUtilsTests
                 Screenshot = [],
                 LastUpdatedInDbAt = DateTime.UtcNow
             };
+            List<TeletekstPage> pagesInDb = [pageInDb];
 
             var pageAtNos = new TeletekstPage
             {
@@ -198,7 +201,7 @@ public class TeletekstPageUtilsTests
             };
 
             // Act
-            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos);
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb);
 
             // Assert
             Assert.That(result, Is.True);
@@ -216,6 +219,7 @@ public class TeletekstPageUtilsTests
                 Screenshot = [],
                 LastUpdatedInDbAt = DateTime.UtcNow
             };
+            List<TeletekstPage> pagesInDb = [pageInDb];
 
             var pageAtNos = new TeletekstPage
             {
@@ -227,7 +231,46 @@ public class TeletekstPageUtilsTests
             };
 
             // Act
-            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos);
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb);
+
+            // Assert
+            Assert.That(result, Is.False);
+        }
+        
+        [Test]
+        public void ShouldPostPage_TitleAlreadyInDbForOtherPage_ReturnsFalse()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+            
+            var pageInDbWithSameTitle = new TeletekstPage
+            {
+                PageNr = 108,
+                Title = "Other Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+            List<TeletekstPage> pagesInDb = [pageInDb, pageInDbWithSameTitle];
+
+            var pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Other Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb);
 
             // Assert
             Assert.That(result, Is.False);

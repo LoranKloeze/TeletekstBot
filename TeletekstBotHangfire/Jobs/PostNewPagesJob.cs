@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using Microsoft.EntityFrameworkCore;
+using Serilog;
 using TeletekstBotHangfire.Data;
 using TeletekstBotHangfire.Models.Ef;
 using TeletekstBotHangfire.Services.Interfaces;
@@ -17,13 +18,14 @@ public class PostNewPagesJob(ApplicationDbContext context,
     [Hangfire.AutomaticRetry(Attempts = 0)]
     public async Task StartAsync(PostNewPagesJobOptions options)
     {
+        var pagesInDb = await context.TeletekstPages.ToListAsync();
         var headlinePageNumbers = await currentPagesService.GetPageNumbersAsync();
         foreach (var pageNumber in headlinePageNumbers)
         {
             var pageInDb = await context.TeletekstPages.FindAsync(pageNumber);
             var pageAtNos = await teletekstPageService.GetPageAsync(pageNumber);
             
-            if (TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos))
+            if (TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb))
             {
                 var changes = TeletekstPageUtils.Changes(pageInDb, pageAtNos);
                 pageAtNos.LastPageChanges = changes;

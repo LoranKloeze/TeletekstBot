@@ -65,15 +65,24 @@ public static class TeletekstPageUtils
         }
     }
 
-    public static bool ShouldPostPage(TeletekstPage? pageInDb, [NotNullWhen(true)] TeletekstPage? pageAtNos)
+    public static bool ShouldPostPage(TeletekstPage? thisPageInDb, [NotNullWhen(true)] TeletekstPage? pageAtNos,
+        List<TeletekstPage> pagesInDb)
     {
         if (pageAtNos == null || string.IsNullOrWhiteSpace(pageAtNos.Title))
         {
             return false;
         }
 
+        var titleAlreadyInDbForOtherPage = pagesInDb
+            .Any(pageInDb => pageInDb.PageNr != pageAtNos.PageNr && pageInDb.Title == pageAtNos.Title);
+        if (titleAlreadyInDbForOtherPage)
+        {
+            return false;
+        }
+
+
         // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (Changes(pageInDb, pageAtNos) != PageChanges.NoChange)
+        if (Changes(thisPageInDb, pageAtNos) != PageChanges.NoChange)
         {
             return true;
         }
