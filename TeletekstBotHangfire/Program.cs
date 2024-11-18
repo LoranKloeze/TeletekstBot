@@ -91,12 +91,15 @@ app.UseHangfireDashboard("/hangfire",
 
 
 // Setup Hangfire jobs
+var cron = isProdEnv ? "*/5 * * * *" : Cron.Never(); 
+var postToSocialMedia = isProdEnv;
 RecurringJob.AddOrUpdate<PostNewPagesJob>("postNewPages",
     "default", x => x.StartAsync(new PostNewPagesJobOptions
     {
-        PostToSocialMedia = true
+        PostToSocialMedia = postToSocialMedia
     }),
-    "*/5 * * * *");
+    cron);
+
 if (runToFillDb)
 {
     Console.WriteLine("Running PostNewPagesJob to fill the database without posting to social media");
