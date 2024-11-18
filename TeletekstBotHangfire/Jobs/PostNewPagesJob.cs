@@ -1,6 +1,5 @@
 ﻿using Serilog;
 using TeletekstBotHangfire.Data;
-using TeletekstBotHangfire.Models;
 using TeletekstBotHangfire.Models.Ef;
 using TeletekstBotHangfire.Services.Interfaces;
 using TeletekstBotHangfire.Utils;

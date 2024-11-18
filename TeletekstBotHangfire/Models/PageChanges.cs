@@ -6,5 +6,5 @@ public enum PageChanges
     NewPage,
     ContentChanged,
     TitleChanged,
-    ContentAndTitleChanged,
+    ContentAndTitleChanged
 }

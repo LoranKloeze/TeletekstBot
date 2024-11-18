@@ -217,7 +217,7 @@ public class TeletekstPageUtilsTests
                 LastUpdatedInDbAt = DateTime.UtcNow
             };
 
-            TeletekstPage? pageAtNos = new TeletekstPage
+            var pageAtNos = new TeletekstPage
             {
                 PageNr = 101,
                 Title = "Same Title",
