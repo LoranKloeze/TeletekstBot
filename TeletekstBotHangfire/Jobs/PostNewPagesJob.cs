@@ -18,17 +18,16 @@ public class PostNewPagesJob(ApplicationDbContext context,
     [Hangfire.AutomaticRetry(Attempts = 0)]
     public async Task StartAsync(PostNewPagesJobOptions options)
     {
-        var pagesInDb = await context.TeletekstPages.ToListAsync();
+        var allPagesInDb = await context.TeletekstPages.ToListAsync();
         var headlinePageNumbers = await currentPagesService.GetPageNumbersAsync();
         foreach (var pageNumber in headlinePageNumbers)
         {
             var pageInDb = await context.TeletekstPages.FindAsync(pageNumber);
             var pageAtNos = await teletekstPageService.GetPageAsync(pageNumber);
             
-            if (TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb))
+            if (TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, allPagesInDb))
             {
-                var changes = TeletekstPageUtils.Changes(pageInDb, pageAtNos);
-                pageAtNos.LastPageChanges = changes;
+                pageAtNos.LastPageChanges = TeletekstPageUtils.Changes(pageInDb, pageAtNos);
                 await UpsertPageAsync(pageAtNos);
                 if (options.PostToSocialMedia)
                 {

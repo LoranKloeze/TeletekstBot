@@ -66,14 +66,14 @@ public static class TeletekstPageUtils
     }
 
     public static bool ShouldPostPage(TeletekstPage? thisPageInDb, [NotNullWhen(true)] TeletekstPage? pageAtNos,
-        List<TeletekstPage> pagesInDb)
+        List<TeletekstPage> allPagesInDb)
     {
         if (pageAtNos == null || string.IsNullOrWhiteSpace(pageAtNos.Title))
         {
             return false;
         }
 
-        var titleAlreadyInDbForOtherPage = pagesInDb
+        var titleAlreadyInDbForOtherPage = allPagesInDb
             .Any(pageInDb => pageInDb.PageNr != pageAtNos.PageNr && pageInDb.Title == pageAtNos.Title);
         if (titleAlreadyInDbForOtherPage)
         {
