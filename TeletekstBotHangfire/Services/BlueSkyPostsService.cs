@@ -125,7 +125,7 @@ public class BlueSkyPostsService : IBlueSkyPostsService
                         Index = new Record.Facet.FacetIndex
                         {
                             ByteStart = 6,
-                            ByteEnd = title.Length
+                            ByteEnd = Encoding.UTF8.GetByteCount(title)
                         },
                         Features = [
                         new Record.Facet.Feature
