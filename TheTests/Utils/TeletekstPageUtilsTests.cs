@@ -275,4 +275,95 @@ public class TeletekstPageUtilsTests
             // Assert
             Assert.That(result, Is.False);
         }
+        
+        [Test]
+        public void ShouldPostPage_PageLastChangedTooLongAgo_ReturnsFalse()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow.AddMinutes(-130)
+            };
+            List<TeletekstPage> pagesInDb = [pageInDb];
+
+            var pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Other Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb);
+
+            // Assert
+            Assert.That(result, Is.False);
+        }
+
+        
+        [Test]
+        public void ShouldPostPage_PageLastChangedShortWhileAgo_ReturnsTrue()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow.AddMinutes(-80)
+            };
+            List<TeletekstPage> pagesInDb = [pageInDb];
+
+            var pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Other Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb);
+
+            // Assert
+            Assert.That(result, Is.True);
+        }
+        
+        [Test]
+        public void ShouldPostPage_PageLastChangedTooLongAgoButOtherTitle_ReturnsTrue()
+        {
+            // Arrange
+            var pageInDb = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Same Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow.AddMinutes(-130)
+            };
+            List<TeletekstPage> pagesInDb = [pageInDb];
+
+            var pageAtNos = new TeletekstPage
+            {
+                PageNr = 101,
+                Title = "Other Title",
+                Content = "Same Content",
+                Screenshot = [],
+                LastUpdatedInDbAt = DateTime.UtcNow
+            };
+
+            // Act
+            var result = TeletekstPageUtils.ShouldPostPage(pageInDb, pageAtNos, pagesInDb);
+
+            // Assert
+            Assert.That(result, Is.True);
+        }
 }

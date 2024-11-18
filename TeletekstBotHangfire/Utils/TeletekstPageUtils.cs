@@ -6,6 +6,9 @@ namespace TeletekstBotHangfire.Utils;
 
 public static class TeletekstPageUtils
 {
+    // Don't post when the page last changed more than n minutes ago
+    private const int LastChangeThresholdInMinutes = 120;
+    
     public static string TitleForSocialMedia(TeletekstPage page)
     {
         return $"[{page.PageNr}] {page.Title}";
@@ -68,7 +71,14 @@ public static class TeletekstPageUtils
     public static bool ShouldPostPage(TeletekstPage? thisPageInDb, [NotNullWhen(true)] TeletekstPage? pageAtNos,
         List<TeletekstPage> allPagesInDb)
     {
-        if (pageAtNos == null || string.IsNullOrWhiteSpace(pageAtNos.Title))
+        if (pageAtNos == null)
+        {
+            return false;
+        }
+        var changes = Changes(thisPageInDb, pageAtNos);
+        
+        var pageCorruptOrNotFound = string.IsNullOrWhiteSpace(pageAtNos.Title);
+        if (pageCorruptOrNotFound)
         {
             return false;
         }
@@ -80,9 +90,16 @@ public static class TeletekstPageUtils
             return false;
         }
 
+        var pageTooOldForUpdates = thisPageInDb is { LastUpdatedInDbAt: not null } && 
+                                   thisPageInDb.Title == pageAtNos.Title &&
+                                   thisPageInDb.LastUpdatedInDbAt < DateTime.UtcNow.AddMinutes(-LastChangeThresholdInMinutes);
+        if (pageTooOldForUpdates)
+        {
+            return false;
+        }
 
         // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (Changes(thisPageInDb, pageAtNos) != PageChanges.NoChange)
+        if (changes != PageChanges.NoChange)
         {
             return true;
         }
