@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using TeletekstBotHangfire.Models.BlueSky;
 using TeletekstBotHangfire.Models.Ef;
 using TeletekstBotHangfire.Services.Interfaces;
@@ -13,16 +14,23 @@ public class BlueSkyPostsService : IBlueSkyPostsService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly JsonSerializerOptions _serializerOptions;
+    private readonly IMemoryCache _memoryCache;
+    private readonly ILogger<BlueSkyPostsService> _logger;
     
     private readonly string _blueSkyIdentifier;
     private readonly string _blueSkyPassword;
-    
+
+    private const string AccessTokenCacheKey = "BlueSkyAccessToken";
+
     private const string ApiUrl = "https://bsky.social";
 
-    public BlueSkyPostsService(HttpClient httpClient, IConfiguration configuration)
+    public BlueSkyPostsService(HttpClient httpClient, IConfiguration configuration, IMemoryCache memoryCache, 
+        ILogger<BlueSkyPostsService> logger)
     {
         _httpClient = httpClient;
         _configuration = configuration;
+        _memoryCache = memoryCache;
+        _logger = logger;
         _serializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -76,6 +84,14 @@ public class BlueSkyPostsService : IBlueSkyPostsService
     
     private async Task RefreshTokensAsync()
     {
+        if (_memoryCache.TryGetValue(AccessTokenCacheKey, out string? accessToken))
+        {
+            _logger.LogInformation("BlueSky: using cached access token");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            return;
+        }
+        _logger.LogInformation("BlueSky: access tokens not found in cache, getting a new one");
+        
         var requestBody = new BlueSkyTokensRequest
         {
             Identifier = _blueSkyIdentifier,
@@ -93,6 +109,8 @@ public class BlueSkyPostsService : IBlueSkyPostsService
         {
             throw new Exception("Failed to deserialize BlueSkyTokensResponse");
         }
+        // Set the access token in cache
+        _memoryCache.Set(AccessTokenCacheKey, responseObject.accessJwt, TimeSpan.FromMinutes(90));
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", responseObject.accessJwt);
     } 
     
