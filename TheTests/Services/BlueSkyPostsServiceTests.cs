@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using TeletekstBotHangfire.Models.BlueSky;
 using TeletekstBotHangfire.Models.Ef;
@@ -100,8 +102,14 @@ public class BlueSkyPostsServiceTests
         {
             BaseAddress = new Uri("https://bsky.social")
         };
+        
+        // Create an IMemoryCache mock
+        var memoryCache = Substitute.For<IMemoryCache>();
+        
+        // Create an ILogger mock
+        var logger = Substitute.For<ILogger<BlueSkyPostsService>>();
 
-        var service = new BlueSkyPostsService(httpClient, _configuration);
+        var service = new BlueSkyPostsService(httpClient, _configuration, memoryCache, logger);
 
         // Act
         await service.SendTeletekstPageAsync(page);
