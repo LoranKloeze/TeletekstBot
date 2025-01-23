@@ -49,6 +49,7 @@ if (!runToFillDb)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSerilog();
+builder.Services.AddMemoryCache();
 builder.Services.AddTransient<IMastodonClient, MastodonClient>(_ =>
 {
     var accessToken = builder.Configuration["Mastodon:AccessToken"] ?? 
@@ -85,13 +86,14 @@ app.UseHttpsRedirection();
 app.UseHangfireDashboard("/hangfire",
     new DashboardOptions
     {
-        Authorization = [new HangfireAuthorizationFilter()]
+        Authorization = [new HangfireAuthorizationFilter()],
+        StatsPollingInterval = 60000
     });
 
 
 
 // Setup Hangfire jobs
-var cron = isProdEnv ? "*/5 * * * *" : Cron.Never(); 
+var cron = isProdEnv ? "*/5 * * * *" : Cron.Never();
 var postToSocialMedia = isProdEnv;
 RecurringJob.AddOrUpdate<PostNewPagesJob>("postNewPages",
     "default", x => x.StartAsync(new PostNewPagesJobOptions
