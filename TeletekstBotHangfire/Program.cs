@@ -88,7 +88,7 @@ app.UseHangfireDashboard("/hangfire",
     {
         Authorization = [new HangfireAuthorizationFilter()],
         StatsPollingInterval = 60000,
-        DashboardTitle = "16:29"
+        DashboardTitle = "18:05"
     });
 
 
